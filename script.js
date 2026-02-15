@@ -1,94 +1,168 @@
+class RandomNumberRoulette {
+    constructor() {
+        this.minInput = document.getElementById('min');
+        this.maxInput = document.getElementById('max');
+        this.generateBtn = document.getElementById('generateBtn');
+        this.resetBtn = document.getElementById('resetBtn');
+        this.resultDiv = document.getElementById('result');
+        this.rouletteNumbers = document.getElementById('rouletteNumbers');
+        this.historyList = document.getElementById('historyList');
+        
+        this.history = [];
+        this.isSpinning = false;
+        
+        this.init();
+    }
+    
+    init() {
+        this.generateBtn.addEventListener('click', () => this.generateNumber());
+        this.resetBtn.addEventListener('click', () => this.resetHistory());
+        this.minInput.addEventListener('change', () => this.validateRange());
+        this.maxInput.addEventListener('change', () => this.validateRange());
+        
+        this.updateRouletteDisplay();
+    }
+    
+    validateRange() {
+        let min = parseInt(this.minInput.value);
+        let max = parseInt(this.maxInput.value);
+        
+        if (min > max) {
+            this.maxInput.value = min + 1;
+        }
+        
+        this.updateRouletteDisplay();
+    }
+    
+    updateRouletteDisplay() {
+        const min = parseInt(this.minInput.value);
+        const max = parseInt(this.maxInput.value);
+        const range = max - min + 1;
+        
+        if (range > 100) {
+            // Для больших диапазонов показываем примерные числа
+            this.rouletteNumbers.innerHTML = '';
+            const numbersToShow = 20;
+            for (let i = 0; i < numbersToShow; i++) {
+                const num = min + Math.floor(Math.random() * range);
+                const div = document.createElement('div');
+                div.className = 'number-item';
+                div.textContent = num;
+                this.rouletteNumbers.appendChild(div);
+            }
+        } else {
+            // Для маленьких диапазонов показываем все числа
+            this.rouletteNumbers.innerHTML = '';
+            for (let i = min; i <= max; i++) {
+                const div = document.createElement('div');
+                div.className = 'number-item';
+                div.textContent = i;
+                this.rouletteNumbers.appendChild(div);
+            }
+        }
+    }
+    
+    async generateNumber() {
+        if (this.isSpinning) return;
+        
+        const min = parseInt(this.minInput.value);
+        const max = parseInt(this.maxInput.value);
+        
+        // Анимация рулетки
+        this.isSpinning = true;
+        this.generateBtn.disabled = true;
+        this.resultDiv.textContent = '???';
+        
+        const spinDuration = 2000; // 2 секунды
+        const spinInterval = 50; // обновление каждые 50ms
+        const startTime = Date.now();
+        
+        // Добавляем класс анимации
+        this.rouletteNumbers.style.transition = 'transform 0.1s linear';
+        
+        const spinPromise = new Promise((resolve) => {
+            const interval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                
+                if (elapsed < spinDuration) {
+                    // Показываем случайные числа во время анимации
+                    const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
+                    this.resultDiv.textContent = randomNum;
+                    
+                    // Двигаем рулетку
+                    const move = (elapsed % 100) * 2;
+                    this.rouletteNumbers.style.transform = `translateX(-${move}px)`;
+                } else {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, spinInterval);
+        });
+        
+        // Ждем окончания анимации
+        await spinPromise;
+        
+        // Генерируем финальное число
+        const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
+        this.resultDiv.textContent = randomNum;
+        
+        // Добавляем в историю
+        this.addToHistory(randomNum);
+        
+        // Обновляем позицию рулетки (имитация остановки на числе)
+        this.rouletteNumbers.style.transition = 'transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2)';
+        
+        if (max - min + 1 <= 20) {
+            // Для маленьких диапазонов позиционируем на выбранном числе
+            const index = randomNum - min;
+            const itemWidth = 80; // ширина .number-item
+            this.rouletteNumbers.style.transform = `translateX(-${index * itemWidth}px)`;
+        } else {
+            this.rouletteNumbers.style.transform = 'translateX(0)';
+        }
+        
+        // Сбрасываем состояние
+        setTimeout(() => {
+            this.isSpinning = false;
+            this.generateBtn.disabled = false;
+            this.rouletteNumbers.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+        }, 500);
+    }
+    
+    addToHistory(number) {
+        this.history.unshift(number);
+        if (this.history.length > 10) {
+            this.history.pop();
+        }
+        
+        this.updateHistoryDisplay();
+    }
+    
+    resetHistory() {
+        this.history = [];
+        this.updateHistoryDisplay();
+    }
+    
+    updateHistoryDisplay() {
+        this.historyList.innerHTML = '';
+        this.history.forEach((num, index) => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.textContent = num;
+            div.style.animation = `slideIn ${0.3 + index * 0.1}s ease`;
+            this.historyList.appendChild(div);
+        });
+        
+        if (this.history.length === 0) {
+            const emptyMsg = document.createElement('div');
+            emptyMsg.textContent = 'История пуста';
+            emptyMsg.style.color = '#999';
+            this.historyList.appendChild(emptyMsg);
+        }
+    }
+}
+
+// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
-    const canvas = document.getElementById('roulette-canvas');
-    const ctx = canvas.getContext('2d');
-    const form = document.getElementById('range-form');
-    const resultMessage = document.getElementById('result-message');
-    const minValueInput = document.getElementById('min-value');
-    const maxValueInput = document.getElementById('max-value');
-    // Очищаем холст
-    function clearCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-    // Функция для визуализации сектора на холсте
-    function drawSector(startAngle, endAngle, sectorLabel) {
-        ctx.beginPath();
-        ctx.moveTo(canvas.width / 2, canvas.height / 2);
-        ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, startAngle, endAngle);
-        ctx.lineTo(canvas.width / 2, canvas.height / 2);
-        ctx.fillStyle = '#FFD700'; // Золотистый сектор
-        ctx.fill();
-        // Нарисуем текст номера посередине сектора
-        ctx.font = 'bold 20px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#000000';
-        const midX = canvas.width / 2 + (canvas.width / 2 - 10) * Math.cos((startAngle + endAngle) / 2);
-        const midY = canvas.height / 2 + (canvas.width / 2 - 10) * Math.sin((startAngle + endAngle) / 2);
-        ctx.fillText(sectorLabel, midX, midY);
-    }
-    // Функция для генерации случайного числа и вращения рулетки
-    async function generateAndSpin() {
-        const minValue = parseInt(minValueInput.value);
-        const maxValue = parseInt(maxValueInput.value);
-
-        if (isNaN(minValue) || isNaN(maxValue) || minValue > maxValue) {
-            alert('Некорректный диапазон!');
-            return;
-        }
-        // Генерация случайного числа
-        const randomNumber = Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue;
-    // Предварительная очистка холста
-    clearCanvas();
-        // Начнем рисовать "рулетку"
-        segmentsCount = maxValue - minValue + 1;
-        segmentSize = (2 * Math.PI) / segmentsCount;
-        let currentAngle = 0;
-
-        for (let i = 0; i < segmentsCount; i++) {
-            const startAngle = currentAngle;
-            const endAngle = currentAngle + segmentSize;
-            drawSector(startAngle, endAngle, minValue + i);
-            currentAngle += segmentSize;
-        }
-        // Покажем игроку, что идет процесс генерации
-        resultMessage.textContent = 'Идет выбор числа.'
-            drawSector(startAngle, endAngle, minValue + i);
-            currentAngle += segmentSize;
-        }
-        // Простая анимация вращения
-        let duration = 2000; // Длительность вращения (мс)
-        let speed = 360 / duration;
-
-        let timeElapsed = 0;
-        while (timeElapsed <= duration) {
-            clearCanvas();
-            ctx.save();
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.rotate(timeElapsed * speed * Math.PI / 180);
-            ctx.drawImage(canvas, -canvas.width / 2, -canvas.save());
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.rotate(timeElapsed * speed * Math.PI / 180);
-            ctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
-            ctx.restore();
-            wait(16); // Ждем примерно 16 мс (примерно 60 fps)
-            timeElapsed += 16;
-            height / 2;
-            ctx.restore();
-            timeElapsed += 16;
-        }
-
-        // Теперь покажем результат
-        resultMessage.textContent = `Выбрано число: ${randomNumber}`;
-
-    // Пауза на указанное количество миллисекунд
-    function wait(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-        }
-        resultMessage.textContent = `Выбрано число: ${randomNumber}`;
-    }
-
-    ,)
-
-document.addEventListener('submit', event => {
-        event.preventDefault(); 
-        generateAndSpin();
-})
+    new RandomNumberRoulette();
+});

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,22 +7,42 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Контейнер для всех элементов -->
     <div class="container">
-        <h1>Генератор случайных чисел с рулеткой</h1>
-        <!-- Формочка для установки минимального и максимального значения -->
-        <form id="range-form">
-            <label for="min-value">Минимальное значение:</label>
-            <input type="number" id="min-value" placeholder="Мин." value="1"><br>
-            <label for="max-value">Максимальное значение:</label>
-            <input type="number" id="max-value" placeholder="Макс." value="10"><br>
-            <button type="submit">Генерировать случайное число</button>
-        </form>
-        <!-- Холст для визуализации результатов (рулетки) -->
-        <canvas id="roulette-canvas" width="300" height="300"></canvas>
-        <!-- Сообщение с результатом -->
-        <div id="result-message"></div>
+        <h1>🎲 Генератор случайных чисел 🎲</h1>
+        
+        <div class="roulette-container">
+            <div class="roulette-wheel" id="rouletteWheel">
+                <div class="roulette-numbers" id="rouletteNumbers"></div>
+                <div class="roulette-pointer">▼</div>
+            </div>
+        </div>
+
+        <div class="result" id="result">Нажмите кнопку для генерации</div>
+
+        <div class="controls">
+            <div class="range-controls">
+                <div class="input-group">
+                    <label for="min">Минимум:</label>
+                    <input type="number" id="min" value="1" min="-1000" max="1000">
+                </div>
+                <div class="input-group">
+                    <label for="max">Максимум:</label>
+                    <input type="number" id="max" value="100" min="-1000" max="1000">
+                </div>
+            </div>
+            
+            <div class="history-controls">
+                <button class="btn btn-generate" id="generateBtn">🎰 Сгенерировать</button>
+                <button class="btn btn-reset" id="resetBtn">🔄 Сбросить историю</button>
+            </div>
+        </div>
+
+        <div class="history">
+            <h3>История генераций:</h3>
+            <div id="historyList" class="history-list"></div>
+        </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
