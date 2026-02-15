@@ -1,74 +1,137 @@
-class RouletteGenerator {
-    constructor() {
-        this.min = 1;
-        this.max = 10;
-        this.isSpinning = false;
-        
-        this.initElements();
-        this.setupEventListeners();
-        this.generateNumbers();
+document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('roulette-canvas');
+    const ctx = canvas.getContext('2d');
+    const form = document.getElementById('range-form');
+    const resultMessage = document.getElementById('result-message');
+    const minValueInput = document.getElementById('min-value');
+    const maxValueInput = document.getElementById('max-value');
+
+    // Очищаем холст
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
-    
-    initElements() {
-        this.minInput = document.getElementById('min');
-        this.maxInput = document.getElementById('max');
-        this.spinButton = document.getElementById('spin');
-        this.roulette = document.getElementById('roulette');
-        this.result = document.getElementById('result');
-        
-        // Создаём указатель
-        const pointer = document.createElement('div');
-        pointer.className = 'pointer';
-        this.roulette.parentElement.appendChild(pointer);
+
+    // Функция для визуализации сектора на холсте
+    function drawSector(startAngle, endAngle, sectorLabel) {
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, canvas.height / 2);
+        ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, startAngle, endAngle);
+        ctx.lineTo(canvas.width / 2, canvas.height / 2);
+        ctx.fillStyle = '#FFD700'; // Золотистый сектор
+        ctx.fill();
+
+        // Нарисуем текст номера посередине сектора
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#000000';
+        const midX = canvas.width / 2 + (canvas.width / 2 - 10) * Math.cos((startAngle + endAngle) / 2);
+        const midY = canvas.height / 2 + (canvas.width / 2 - 10) * Math.sin((startAngle + endAngle) / 2);
+        ctx.fillText(sectorLabel, midX, midY);
     }
-    
-    setupEventListeners() {
-        this.minInput.addEventListener('change', () => {
-            this.min = parseInt(this.minInput.value);
-            if (this.min >= this.max) this.min = this.max - 1;
-            this.generateNumbers();
-        });
-        
-        this.maxInput.addEventListener('change', () => {
-            this.max = parseInt(this.maxInput.value);
-            if (this.max <= this.min) this.max = this.min + 1;
-            this.generateNumbers();
-        });
-        
-        this.spinButton.addEventListener('click', () => this.spin());
-    }
-    
-    generateNumbers() {
-        // Очищаем предыдущее содержимое
-        this.roulette.innerHTML = '';
-        
-        const count = this.max - this.min + 1;
-        const angle = 360 / count;
-        
-        for (let i = 0; i < count; i++) {
-            const number = this.min + i;
-            const numberElement = document.createElement('div');
-            numberElement.className = 'number';
-            numberElement.textContent = number;
-            numberElement.style.transform = `rotate(${i * angle}deg)`;
-            this.roulette.appendChild(numberElement);
+
+    // Функция для генерации случайного числа и вращения рулетки
+    async function generateAndSpin() {
+        const minValue = parseInt(minValueInput.value);
+        const maxValue = parseInt(maxValueInput.value);
+
+        if (isNaN(minValue) || isNaN(maxValue) || minValue > maxValue) {
+            alert('Некорректный диапазон!');
+            return;
         }
+
+        // Генерация случайного числа
+        const randomNumber = Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue;
+
+    // Предварительная очистка холста
+    clearCanvas();
+
+    let segmentsCount = maxValue - minValue + 1;
+        let segmentSize = (2 * Math.PI) / segmentsCount;
+
+        // Начнем рисовать "рулетку"
+        segmentsCount = maxValue - minValue + 1;
+        segmentSize = (2 * Math.PI) / segmentsCount;
+        let currentAngle = 0;
+
+        for (let i = 0; i < segmentsCount; i++) {
+            const startAngle = currentAngle;
+            const endAngle = currentAngle + segmentSize;
+        let currentAngle = 0;
+
+        for (let i = 0; i < segmentsCount; i++) {
+            const startAngle = currentAngle;
+            const endAngle = currentAngle + segmentSize;
+            drawSector(startAngle, endAngle, minValue + i);
+            currentAngle += segmentSize;
+        }
+
+        // Покажем игроку, что идет процесс генерации
+        resultMessage.textContent = 'Идет выбор числа.'
+            drawSector(startAngle, endAngle, minValue + i);
+            currentAngle += segmentSize;
+        }
+
+        // Покажем игроку, что идет процесс генерации
+        resultMessage.textContent = 'Идет выбор числа...';
+
+        // Простая анимация вращения
+        let duration = 2000; // Длительность вращения (мс)
+        let speed = 360 / duration;
+
+        // Простая анимация вращения
+        duration = 2000; // Длительность вращения (мс)
+        speed = 360 / duration; // Скорость вращения
+
+        let timeElapsed = 0;
+        while (timeElapsed <= duration) {
+            clearCanvas();
+            ctx // Скорость вращения
+
+        let timeElapsed = 0;
+        while (timeElapsed <= duration) {
+            clearCanvas();
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(timeElapsed * speed * Math.PI / 180);
+            ctx.drawImage(canvas, -canvas.width / 2, -canvas.save());
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(timeElapsed * speed * Math.PI / 180);
+            ctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+            ctx.restore();
+            await wait(16); // Ждем примерно 16 мс (примерно 60 fps)
+            timeElapsed += 16;height / 2;
+            ctx.restore();
+            await wait(16); // Ждем примерно 16 мс (примерно 60 fps)
+            timeElapsed += 16;
+        }
+
+        // Теперь покажем результат
+        resultMessage.textContent = `Выбрано число: ${randomNumber}`;
     }
-    
-    spin() {
-        if (this.isSpinning) return;
-        
-        this.isSpinning = true;
-        this.spinButton.disabled = true;
-        this.result.textContent = 'Результат: крутится...';
-        
-        // Генерируем случайное число
-        const randomNumber = Math.floor(Math.random() * (this.max - this.min + 1)) + this.min;
-        const numberIndex = randomNumber - this.min;
-        
-        // Рассчитываем угол поворота (несколько полных оборотов + нужный сектор)
-        const fullRotations = 5; // Количество полных оборотов
-        const sectorAngle = 360 / (this.max - this.min + 1);
-        const targetAngle = fullRotations * 3
+
+    // Пауза на указанное количество миллисекунд
+    function wait(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Теперь покажем результат
+        resultMessage.textContent = `Выбрано число: ${randomNumber}`;
     }
-}
+
+    // Пауза на указанное количество миллисекунд
+    function wait(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Обработчик события отправки формы
+    form.addEventListener('submit', event => {
+        event.preventDefault(); // Блокируем обычную отправку формы
+        generateAndSpin();
+    })
+
+    // Обработчик события отправки формы
+    form.addEventListener('submit', event => {
+        event.preventDefault(); // Блокируем обычную отправку формы
+        generateAndSpin(); // Запустим нашу логику
+    })
+});
